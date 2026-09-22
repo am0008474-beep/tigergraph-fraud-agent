@@ -1,0 +1,154 @@
+// ============================================================================
+// TigerGraph GSQL Stored Queries for Agentic Fraud Investigation
+// Graph Name: FraudInvestigationGraph
+// ============================================================================
+
+USE GRAPH FraudInvestigationGraph
+
+// ----------------------------------------------------------------------------
+// 1. card_window: Find transactions on a card around a target timestamp
+// ----------------------------------------------------------------------------
+CREATE QUERY card_window(VERTEX<Card> target_card, DATETIME target_ts, INT hours_before, INT hours_after)
+FOR GRAPH FraudInvestigationGraph {
+    ListAccum<VERTEX<Transaction>> @txns;
+    
+    Start = {target_card};
+    
+    Txns = SELECT t FROM Start:s -(MADE:e)-> Transaction:t
+           WHERE datetime_diff(t.ts, target_ts) >= -hours_before * 3600 
+             AND datetime_diff(t.ts, target_ts) <= hours_after * 3600
+           ORDER BY t.ts ASC;
+
+    PRINT Txns[Txns.id, Txns.amt, Txns.ts, Txns.channel, Txns.risk_score, Txns.product_cd];
+}
+
+// ----------------------------------------------------------------------------
+// 2. device_neighbors: 2-hop traversal to find cards & cases sharing device profile
+// ----------------------------------------------------------------------------
+CREATE QUERY device_neighbors(VERTEX<DeviceProfile> target_device)
+FOR GRAPH FraudInvestigationGraph {
+    SetAccum<VERTEX<Card>> @@connected_cards;
+    SetAccum<VERTEX<ClosedCase>> @@connected_closed_cases;
+    SetAccum<VERTEX<Transaction>> @@connected_txns;
+
+    Start = {target_device};
+
+    // Hop 1: Transactions using this device
+    Txns = SELECT t FROM Start:d -(USED_IN_TXN:e)-> Transaction:t
+           ACCUM @@connected_txns += t;
+
+    // Hop 2: Cards that made those transactions
+    Cards = SELECT c FROM Txns:t -(MADE_BY:e)-> Card:c
+            ACCUM @@connected_cards += c;
+
+    // Hop 3: Historical cases involving those cards or transactions
+    Cases = SELECT cs FROM Cards:c -(HAD_CLOSED_CASE:e)-> ClosedCase:cs
+            ACCUM @@connected_closed_cases += cs;
+
+    PRINT @@connected_cards, @@connected_closed_cases, @@connected_txns;
+}
+
+// ----------------------------------------------------------------------------
+// 3. customer_network: Customer's multi-card portfolio, primary regions, & cases
+// ----------------------------------------------------------------------------
+CREATE QUERY customer_network(VERTEX<Customer> target_customer)
+FOR GRAPH FraudInvestigationGraph {
+    SetAccum<VERTEX<Card>> @@cards;
+    SetAccum<VERTEX<BillingRegion>> @@regions;
+    SetAccum<VERTEX<EmailDomain>> @@emails;
+    ListAccum<VERTEX<ClosedCase>> @@prior_cases;
+
+    Start = {target_customer};
+
+    // Get all cards owned by customer
+    Cards = SELECT c FROM Start:s -(OWNS:e)-> Card:c
+            ACCUM @@cards += c;
+
+    // Get prior closed cases on those cards
+    Closed = SELECT cs FROM Cards:c -(HAD_CLOSED_CASE:e)-> ClosedCase:cs
+             ACCUM @@prior_cases += cs;
+
+    // Get recent transactions to discover normal billing regions
+    Txns = SELECT t FROM Cards:c -(MADE:e)-> Transaction:t
+           LIMIT 50;
+
+    Regions = SELECT r FROM Txns:t -(BILLED_IN:e)-> BillingRegion:r
+              ACCUM @@regions += r;
+
+    Emails = SELECT em FROM Txns:t -(PURCHASER_EMAIL:e)-> EmailDomain:em
+             ACCUM @@emails += em;
+
+    PRINT @@cards, @@prior_cases, @@regions, @@emails;
+}
+
+// ----------------------------------------------------------------------------
+// 4. detect_card_testing: Identify testing sequences (>=3 small txns followed by large)
+// ----------------------------------------------------------------------------
+CREATE QUERY detect_card_testing(VERTEX<Card> target_card, DATETIME target_ts, DOUBLE small_threshold, DOUBLE large_threshold)
+FOR GRAPH FraudInvestigationGraph {
+    ListAccum<VERTEX<Transaction>> @small_txns;
+    ListAccum<VERTEX<Transaction>> @large_txns;
+    SumAccum<INT> @@testing_count = 0;
+    SumAccum<INT> @@large_count = 0;
+
+    Start = {target_card};
+
+    Txns = SELECT t FROM Start:c -(MADE:e)-> Transaction:t
+           WHERE t.channel == "online"
+             AND datetime_diff(target_ts, t.ts) >= 0 
+             AND datetime_diff(target_ts, t.ts) <= 7200 // within 2 hours
+           ORDER BY t.ts ASC;
+
+    Check = SELECT t FROM Txns:t
+            ACCUM 
+                CASE WHEN t.amt <= small_threshold THEN
+                    @@testing_count += 1,
+                    @small_txns += t
+                WHEN t.amt >= large_threshold THEN
+                    @@large_count += 1,
+                    @large_txns += t
+                END;
+
+    PRINT @@testing_count, @@large_count;
+}
+
+// ----------------------------------------------------------------------------
+// 5. write_investigation_case: Write resolved fraud case into TigerGraph memory
+// ----------------------------------------------------------------------------
+CREATE QUERY write_investigation_case(
+    STRING case_id,
+    STRING status,
+    STRING verdict,
+    DOUBLE fraud_prob,
+    STRING pattern,
+    STRING pattern_desc,
+    DOUBLE exposure,
+    STRING stop_reason,
+    STRING summary,
+    VERTEX<Card> target_card,
+    SET<VERTEX<Transaction>> affected_txns,
+    SET<VERTEX<Card>> connected_cards
+) FOR GRAPH FraudInvestigationGraph {
+    
+    INSERT INTO FraudCase (
+        PRIMARY_ID, opened_at, status, verdict, fraud_probability,
+        pattern, pattern_description, exposure_usd, stop_reason, summary
+    ) VALUES (
+        case_id, now(), status, verdict, fraud_prob,
+        pattern, pattern_desc, exposure, stop_reason, summary
+    );
+
+    INSERT INTO CASE_ON_CARD (FROM, TO) VALUES (case_id, target_card);
+
+    FOREACH t IN affected_txns DO
+        INSERT INTO CASE_INVOLVES (FROM, TO) VALUES (case_id, t);
+    END;
+
+    FOREACH c IN connected_cards DO
+        INSERT INTO CASE_CONNECTED_CARD (FROM, TO) VALUES (case_id, c);
+    END;
+
+    PRINT "Case successfully recorded to graph memory." AS result;
+}
+
+INSTALL QUERY card_window, device_neighbors, customer_network, detect_card_testing, write_investigation_case;

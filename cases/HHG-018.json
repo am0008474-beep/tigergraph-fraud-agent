@@ -1,0 +1,97 @@
+{
+  "case_id": "HHG-018",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.96,
+    "pattern": "out_of_region_use",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3491361"
+    ],
+    "first_suspicious_txn_id": "3491361",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 39.08,
+    "evidence": [
+      {
+        "claim": "Flagged authorization of $39.08 recorded on 2016-11-27 13:41:26 via in_person channel with model risk score 0.48",
+        "source": "graph",
+        "ref": "query:transaction(id=3491361)",
+        "entity_ids": [
+          "3491361"
+        ]
+      },
+      {
+        "claim": "Typology matches historical closed cases CC-5565, CC-5564 with confirmed out_of_region_use outcome and comparable transactional topology",
+        "source": "document",
+        "ref": "query:closed_cases_memory",
+        "entity_ids": [
+          "CC-5565",
+          "CC-5564"
+        ]
+      },
+      {
+        "claim": "Cardholder verification inquiry: Cardholder confirms they did not execute or authorize this transaction and retained physical possession of the card.",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "C02354-K2"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-5565",
+      "CC-5564"
+    ],
+    "summary": "Investigation into alert on transaction 3491361 confirmed out of region use on card C02354-K2. Graph analysis identified $39.08 in unauthorized exposure across 1 transaction(s). Cardholder denied the activity. Card blocked for reissue, case recorded to graph memory, and regulatory filings executed per policy.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-20260923-HHG-018"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 4,
+      "assumed_response": "Cardholder confirms they did not execute or authorize this transaction and retained physical possession of the card."
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "Policy 3a: Open internal fraud investigation upon customer claim of unauthorized charge"
+      },
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: Gather formal confirmation of card possession and transaction denial before executing block"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: Customer denied transaction / unauthorized activity confirmed. Exposure $39.08"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: Formally open internal fraud case and record investigation graph vertex"
+      }
+    ],
+    "what_changed": "Customer denial confirmed unauthorized activity, raising fraud probability to 0.96. Initial verification action escalated to immediate card block and case creation under Policy R2."
+  },
+  "sar": {
+    "file": false,
+    "reason": "",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Customer denial and graph topology established conclusive fraud determination (probability >= 0.85); defensible mitigation actions deployed.",
+  "tool_calls": 6,
+  "tokens": 12500,
+  "latency_s": 0.33
+}

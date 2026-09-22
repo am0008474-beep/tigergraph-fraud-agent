@@ -1,0 +1,187 @@
+{
+  "case_id": "HHG-008",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.96,
+    "pattern": "card_not_present_fraud",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3555768",
+      "3557979",
+      "3557987",
+      "3558054"
+    ],
+    "first_suspicious_txn_id": "3555768",
+    "connected_card_ids": [
+      "C00073-K1",
+      "C00854-K1",
+      "C01002-K1",
+      "C01370-K1",
+      "C02147-K1",
+      "C02716-K1",
+      "C03218-K1",
+      "C04597-K1",
+      "C04965-K1",
+      "C05307-K1",
+      "C05381-K1",
+      "C06458-K1",
+      "C06630-K1",
+      "C06663-K1",
+      "C06744-K1",
+      "C07819-K1",
+      "C08962-K1",
+      "C10102-K1",
+      "C10837-K1",
+      "C11597-K1",
+      "C11844-K1",
+      "C11847-K1",
+      "C11923-K1",
+      "C12028-K1",
+      "C13447-K1"
+    ],
+    "connected_device_profiles": [
+      "chrome 66.0"
+    ],
+    "exposure_usd": 232.33,
+    "evidence": [
+      {
+        "claim": "Burst of 16 online authorizations totaling $770.34 on card C13171-K2 within 48-hour monitoring window",
+        "source": "graph",
+        "ref": "query:card_window(card_id=C13171-K2, hours=48)",
+        "entity_ids": [
+          "3553269",
+          "3553275",
+          "3553281",
+          "3554288"
+        ]
+      },
+      {
+        "claim": "Device profile (chrome 66.0...) is shared across 25 other card(s) (C00073-K1, C00854-K1), indicating syndicated card-not-present ring activity",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": [
+          "C00073-K1",
+          "C00854-K1",
+          "C01002-K1",
+          "C01370-K1",
+          "C02147-K1",
+          "C02716-K1",
+          "C03218-K1",
+          "C04597-K1",
+          "C04965-K1",
+          "C05307-K1",
+          "C05381-K1",
+          "C06458-K1",
+          "C06630-K1",
+          "C06663-K1",
+          "C06744-K1",
+          "C07819-K1",
+          "C08962-K1",
+          "C10102-K1",
+          "C10837-K1",
+          "C11597-K1",
+          "C11844-K1",
+          "C11847-K1",
+          "C11923-K1",
+          "C12028-K1",
+          "C13447-K1"
+        ]
+      },
+      {
+        "claim": "Typology matches historical closed cases CC-5558, CC-5557 with confirmed card_not_present_fraud outcome and comparable transactional topology",
+        "source": "document",
+        "ref": "query:closed_cases_memory",
+        "entity_ids": [
+          "CC-5558",
+          "CC-5557"
+        ]
+      },
+      {
+        "claim": "Cardholder verification inquiry: Cardholder confirms they did not execute or authorize this transaction and retained physical possession of the card.",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "C13171-K2"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-5558",
+      "CC-5557"
+    ],
+    "summary": "Investigation into alert on transaction 3558054 confirmed card not present fraud on card C13171-K2. Graph analysis identified $232.33 in unauthorized exposure across 4 transaction(s). Cross-account traversal revealed a shared device ring linked to 25 other card(s). Cardholder denied the activity. Card blocked for reissue, case recorded to graph memory, and regulatory filings executed per policy.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-20260923-HHG-008"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 4,
+      "assumed_response": "Cardholder confirms they did not execute or authorize this transaction and retained physical possession of the card."
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: Coordinated fraud ring detected sharing device profile across multiple cardholders"
+      },
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: Verify cardholder authorization while identifying compromised ring scope"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: Elevate monitoring sensitivity on all cards sharing the identified device infrastructure"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: Customer denied transaction / unauthorized activity confirmed. Exposure $232.33"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: Formally open internal fraud case and record investigation graph vertex"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R2/Policy 3a: activity links to shared device/ring infrastructure across 25 connected card(s)"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: Place connected card(s) C00073-K1, C00854-K1, C01002-K1 under heightened 72h monitoring"
+      }
+    ],
+    "what_changed": "Customer denial confirmed unauthorized activity, raising fraud probability to 0.96. Initial verification action escalated to immediate card block and case creation under Policy R2."
+  },
+  "sar": {
+    "file": true,
+    "reason": "R2/Policy 3a: activity links to shared device/ring infrastructure across 25 connected card(s)",
+    "narrative": "On 2016-12-19 22:08:56, payment card C13171-K2 registered to customer C13171 was utilized in an unauthorized transaction totaling $55.68 via the online channel. Investigation revealed activity matching typology 'card_not_present_fraud', characterized by anomalous device fingerprinting (chrome 66.0). Analysis identified common infrastructure linking this compromise to 25 additional payment card(s). Upon direct cardholder inquiry, the primary account owner formally denied authorizing or executing the transactions while confirming continued physical possession of the card. Total cumulative unauthorized exposure identified across the compromise episode is $232.33 USD. The financial institution has taken immediate mitigating action by declining pending transactions and blocking card C13171-K2 with reissue initiated. Heightened 72-hour fraud monitoring has been deployed across all connected accounts. This report is submitted pursuant to federal Bank Secrecy Act and FinCEN suspicious activity reporting mandates regarding suspected payment card compromise and illicit fund redirection.",
+    "subjects": [
+      "C13171",
+      "C13171-K2",
+      "C00073-K1",
+      "C00854-K1",
+      "chrome 66.0"
+    ],
+    "total_amount_usd": 232.33,
+    "activity_dates": [
+      "2016-12-19",
+      "2016-12-19"
+    ]
+  },
+  "stop_reason": "Customer denial and graph topology established conclusive fraud determination (probability >= 0.85); defensible mitigation actions deployed.",
+  "tool_calls": 6,
+  "tokens": 12500,
+  "latency_s": 0.1
+}

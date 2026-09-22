@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TigerGraph Sentinel - Agentic Fraud Investigation System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fff7ed',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c'
+            },
+            tg: {
+              orange: '#FF5722',
+              dark: '#0B0F19',
+              card: '#161F30',
+              border: '#243247'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #080C15; color: #E2E8F0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .glass-card { background: rgba(22, 31, 48, 0.85); backdrop-filter: blur(12px); border: 1px solid #243247; border-radius: 12px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0B0F19; }
+    ::-webkit-scrollbar-thumb { background: #2A3B53; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3B5274; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-sm">
+
+  <!-- Top Navbar -->
+  <header class="h-14 border-b border-tg-border bg-tg-dark flex items-center justify-between px-6 shrink-0 z-20">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-orange-500/20">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-base text-white tracking-wide">TigerGraph Sentinel</span>
+          <span class="bg-orange-500/20 text-orange-400 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-orange-500/30">AGENTIC AI</span>
+          <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> TigerGraph Savanna: CONNECTED
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-400">Autonomous Fraud Investigation & Next-Best Action Engine</p>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="flex items-center gap-6 text-xs">
+      <div class="flex items-center gap-2 bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-700/50">
+        <span class="text-slate-400">Benchmark Cases:</span>
+        <span class="font-bold text-white" id="stat-total">20 / 20</span>
+      </div>
+      <div class="flex items-center gap-2 bg-rose-500/10 px-3 py-1.5 rounded-lg border border-rose-500/20">
+        <span class="text-rose-400 font-medium">Fraud Detected:</span>
+        <span class="font-bold text-rose-300" id="stat-fraud">--</span>
+      </div>
+      <div class="flex items-center gap-2 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+        <span class="text-emerald-400 font-medium">Legitimate Cleared:</span>
+        <span class="font-bold text-emerald-300" id="stat-legit">--</span>
+      </div>
+      <div class="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
+        <span class="text-amber-400 font-medium">SAR Filings:</span>
+        <span class="font-bold text-amber-300" id="stat-sar">--</span>
+      </div>
+      <div class="flex items-center gap-2 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20">
+        <span class="text-blue-400 font-medium">Total Exposure:</span>
+        <span class="font-bold text-blue-300" id="stat-exposure">$0.00</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Workspace -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Left Sidebar: Case Queue -->
+    <aside class="w-80 border-r border-tg-border bg-tg-dark/80 flex flex-col shrink-0">
+      <div class="p-3 border-b border-tg-border flex items-center justify-between">
+        <div class="flex items-center gap-2 font-semibold text-slate-200">
+          <i class="fa-solid fa-list-check text-orange-400"></i>
+          <span>Investigation Queue</span>
+        </div>
+        <span class="text-[11px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700">20 Cases</span>
+      </div>
+      
+      <!-- Filter tabs -->
+      <div class="px-3 pt-2 pb-1 flex gap-1 border-b border-tg-border text-xs">
+        <button onclick="filterQueue('all')" id="btn-filter-all" class="px-2.5 py-1 rounded font-medium bg-slate-800 text-orange-400 border border-slate-700">All</button>
+        <button onclick="filterQueue('fraud')" id="btn-filter-fraud" class="px-2.5 py-1 rounded font-medium text-slate-400 hover:text-slate-200">Fraud</button>
+        <button onclick="filterQueue('legitimate')" id="btn-filter-legit" class="px-2.5 py-1 rounded font-medium text-slate-400 hover:text-slate-200">Legit</button>
+        <button onclick="filterQueue('sar')" id="btn-filter-sar" class="px-2.5 py-1 rounded font-medium text-slate-400 hover:text-slate-200">SAR Filed</button>
+      </div>
+
+      <!-- Scrollable list of cases -->
+      <div class="flex-1 overflow-y-auto p-2 space-y-1.5" id="case-queue-list">
+        <div class="p-4 text-center text-slate-500">Loading cases...</div>
+      </div>
+    </aside>
+
+    <!-- Center Column: Case Inspection & Live Graph Visualizer -->
+    <main class="flex-1 flex flex-col border-r border-tg-border overflow-hidden bg-[#0A0E1A]">
+
+      <!-- Active Case Header Banner -->
+      <div class="p-4 border-b border-tg-border bg-tg-card/50 flex items-center justify-between shrink-0">
+        <div>
+          <div class="flex items-center gap-3">
+            <h1 class="text-xl font-bold text-white tracking-tight" id="active-case-id">HHG-014</h1>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold" id="active-status-badge">Status</span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold" id="active-verdict-badge">Verdict</span>
+            <span class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700" id="active-pattern-badge">Pattern</span>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-slate-400 mt-1">
+            <span><i class="fa-regular fa-credit-card text-slate-500 mr-1"></i>Card: <strong class="text-slate-200" id="active-card-id">--</strong></span>
+            <span><i class="fa-regular fa-user text-slate-500 mr-1"></i>Customer: <strong class="text-slate-200" id="active-cust-id">--</strong></span>
+            <span><i class="fa-solid fa-receipt text-slate-500 mr-1"></i>Flagged Txn: <strong class="text-slate-200" id="active-txn-id">--</strong></span>
+            <span><i class="fa-solid fa-dollar-sign text-slate-500 mr-1"></i>Exposure: <strong class="text-amber-400 font-bold" id="active-exposure">$0.00</strong></span>
+          </div>
+        </div>
+
+        <!-- Uncertainty / Risk Comparison Gauge -->
+        <div class="flex items-center gap-5 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700/60 shadow-inner">
+          <div class="text-center">
+            <div class="text-[10px] text-slate-400 font-medium">Model Risk Score</div>
+            <div class="text-lg font-black text-slate-300" id="active-model-score">0.00</div>
+          </div>
+          <div class="h-8 w-px bg-slate-700"></div>
+          <div class="text-center">
+            <div class="text-[10px] text-orange-400 font-bold">Assessed Fraud Prob</div>
+            <div class="text-lg font-black text-orange-400" id="active-fraud-prob">0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graph Topology Canvas -->
+      <div class="flex-1 relative flex flex-col overflow-hidden">
+        <div class="absolute top-3 left-3 z-10 flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-700 text-xs shadow-lg">
+          <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+          <span class="font-semibold text-slate-300">TigerGraph 2-Hop Topology Visualizer</span>
+          <span class="text-[10px] text-slate-500">(Drag nodes to reposition)</span>
+        </div>
+
+        <div class="absolute top-3 right-3 z-10 flex items-center gap-1 bg-slate-900/90 p-1 rounded-lg border border-slate-700 text-xs">
+          <button onclick="resetGraphView()" class="px-2 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded">
+            <i class="fa-solid fa-arrows-rotate mr-1"></i>Reset
+          </button>
+        </div>
+
+        <canvas id="topologyCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+
+        <!-- Topology Legend -->
+        <div class="absolute bottom-3 left-3 z-10 flex items-center gap-4 bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-700 text-[11px] text-slate-400">
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Case</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Card</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Customer</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Transaction</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Device</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Connected Card</span>
+        </div>
+      </div>
+
+      <!-- 8-Step Chronological Stepper -->
+      <div class="h-44 border-t border-tg-border bg-tg-dark/95 flex flex-col shrink-0">
+        <div class="px-4 py-2 border-b border-tg-border/60 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2 font-semibold text-slate-300">
+            <i class="fa-solid fa-timeline text-orange-400"></i>
+            <span>8-Step Agentic Investigation Progression</span>
+          </div>
+          <span class="text-[11px] text-slate-400" id="stepper-stop-reason">Stopping condition satisfied</span>
+        </div>
+        
+        <div class="flex-1 overflow-x-auto p-3 flex gap-3 items-center" id="stepper-container">
+          <!-- Dynamically populated steps -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar: Next-Best Action, Approval Workflow & SAR Filing -->
+    <aside class="w-96 bg-tg-dark flex flex-col shrink-0 overflow-y-auto p-4 space-y-4">
+
+      <!-- Next Best Action Card -->
+      <div class="glass-card p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-tg-border pb-2">
+          <div class="flex items-center gap-2 font-bold text-white">
+            <i class="fa-solid fa-bolt text-amber-400"></i>
+            <span>Next-Best Actions</span>
+          </div>
+          <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700">Policy R1 - R10</span>
+        </div>
+
+        <!-- Initial Actions -->
+        <div>
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Initial (Before Evidence)</div>
+          <div class="space-y-1.5" id="initial-actions-list">
+            <!-- populated -->
+          </div>
+        </div>
+
+        <!-- Final Actions -->
+        <div class="pt-2 border-t border-tg-border/60">
+          <div class="text-[11px] font-semibold text-orange-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+            <span>Final (Post Evidence)</span>
+            <span class="text-[10px] text-slate-400 font-normal">Defensible Action</span>
+          </div>
+          <div class="space-y-1.5" id="final-actions-list">
+            <!-- populated -->
+          </div>
+        </div>
+
+        <!-- What Changed -->
+        <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 text-xs">
+          <span class="font-semibold text-slate-300 block mb-0.5"><i class="fa-solid fa-arrow-right-arrow-left text-orange-400 mr-1"></i>What Changed:</span>
+          <p class="text-slate-400 text-[11px] leading-relaxed" id="what-changed-text">nothing</p>
+        </div>
+
+        <!-- Human Approval Action Route Buttons -->
+        <div class="pt-2 space-y-2" id="approval-controls">
+          <div class="text-[11px] font-semibold text-slate-300">Approval Route Simulation:</div>
+          <div class="flex gap-2">
+            <button onclick="simulateApproval('L1')" class="flex-1 py-1.5 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+              <i class="fa-solid fa-user-check"></i> Approve L1
+            </button>
+            <button onclick="simulateApproval('L2')" class="flex-1 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+              <i class="fa-solid fa-user-shield"></i> Approve L2 (Manager)
+            </button>
+          </div>
+          <div id="approval-toast" class="hidden text-center text-[11px] text-emerald-400 font-medium p-1 bg-emerald-500/10 rounded border border-emerald-500/20">
+            Action Approved and Logged to Graph Audit Trail!
+          </div>
+        </div>
+      </div>
+
+      <!-- Suspicious Activity Report (SAR) Panel -->
+      <div class="glass-card p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-tg-border pb-2">
+          <div class="flex items-center gap-2 font-bold text-white">
+            <i class="fa-solid fa-file-contract text-orange-400"></i>
+            <span>Regulatory SAR Filing</span>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded font-bold" id="sar-filing-badge">REQUIRED</span>
+        </div>
+
+        <div id="sar-content-block" class="space-y-2.5">
+          <div class="text-xs">
+            <span class="text-slate-400">Filing Reason:</span>
+            <p class="text-slate-200 font-medium text-[11px] mt-0.5" id="sar-reason">--</p>
+          </div>
+
+          <div class="text-xs">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-slate-400">FinCEN Regulatory Narrative:</span>
+              <button onclick="copySARNarrative()" class="text-[10px] text-orange-400 hover:text-orange-300 flex items-center gap-1">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-800 text-[11px] text-slate-300 leading-relaxed max-h-48 overflow-y-auto" id="sar-narrative">
+              --
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-xs pt-1 border-t border-tg-border/60">
+            <span class="text-slate-400">Identified Subjects:</span>
+            <span class="text-slate-200 font-semibold" id="sar-subjects">--</span>
+          </div>
+        </div>
+
+        <div id="sar-not-required-block" class="hidden p-4 text-center text-slate-500 text-xs">
+          <i class="fa-regular fa-circle-check text-emerald-400 text-2xl block mb-2"></i>
+          SAR filing is not mandated for this case under Bank Fraud Policy 3a.
+        </div>
+      </div>
+
+      <!-- Graph Case Memory Panel -->
+      <div class="glass-card p-4 space-y-2.5">
+        <div class="flex items-center justify-between border-b border-tg-border pb-2">
+          <div class="flex items-center gap-2 font-bold text-white text-xs">
+            <i class="fa-solid fa-brain text-purple-400"></i>
+            <span>TigerGraph Case Memory</span>
+          </div>
+          <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">5,565 Cases</span>
+        </div>
+        <div class="text-xs text-slate-400">Similar Past Cases Retrieved:</div>
+        <div class="space-y-1.5" id="case-memory-list">
+          <!-- populated -->
+        </div>
+        <div class="pt-2 text-[11px] text-slate-400 flex items-center justify-between border-t border-tg-border/60">
+          <span>Graph Vertex ID:</span>
+          <code class="text-orange-400 text-[10px]" id="graph-vertex-id">CASE-20260923-HHG-014</code>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- Client Script for Interactive Logic & Canvas Physics Graph -->
+  <script>
+    let allCases = [];
+    let currentCase = null;
+    let topologyData = null;
+    let canvas, ctx;
+    let nodes = [], links = [];
+    let isDragging = false, draggedNode = null;
+
+    async function init() {
+      canvas = document.getElementById('topologyCanvas');
+      ctx = canvas.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      setupCanvasInteractions();
+
+      await loadStats();
+      await loadCases();
+      if (allCases.length > 0) {
+        selectCase(allCases[13].case_id); // Default to HHG-014 (syndicate ring)
+      }
+
+      // Start animation loop
+      requestAnimationFrame(renderGraph);
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const s = await res.json();
+        document.getElementById('stat-total').innerText = `${s.total_cases} / 20`;
+        document.getElementById('stat-fraud').innerText = s.fraud_cases;
+        document.getElementById('stat-legit').innerText = s.legitimate_cases;
+        document.getElementById('stat-sar').innerText = s.sars_filed;
+        document.getElementById('stat-exposure').innerText = `$${s.total_exposure_usd.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+      } catch (e) {
+        console.error("Stats load failed", e);
+      }
+    }
+
+    async function loadCases() {
+      try {
+        const res = await fetch('/api/cases');
+        const data = await res.json();
+        allCases = data.cases;
+        renderCaseQueue(allCases);
+      } catch (e) {
+        console.error("Cases load failed", e);
+      }
+    }
+
+    function renderCaseQueue(casesToRender) {
+      const container = document.getElementById('case-queue-list');
+      container.innerHTML = '';
+
+      casesToRender.forEach(c => {
+        const div = document.createElement('div');
+        div.className = `p-2.5 rounded-lg border cursor-pointer transition flex items-center justify-between text-xs ${
+          currentCase && currentCase.case_id === c.case_id
+            ? 'bg-orange-500/10 border-orange-500/50 shadow-md'
+            : 'bg-slate-900/60 hover:bg-slate-800/80 border-slate-800'
+        }`;
+        div.onclick = () => selectCase(c.case_id);
+
+        const isFraud = c.verdict === 'fraud';
+        const verdictColor = isFraud ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+
+        div.innerHTML = `
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-white">${c.case_id}</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold border ${verdictColor}">${c.verdict.toUpperCase()}</span>
+              ${c.sar_filed ? '<span class="text-[9px] bg-amber-500/20 text-amber-300 px-1 rounded border border-amber-500/30">SAR</span>' : ''}
+            </div>
+            <div class="text-[11px] text-slate-400 mt-0.5">${c.pattern !== 'none' ? c.pattern.replace(/_/g, ' ') : 'cleared'}</div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-slate-200">$${c.exposure_usd.toFixed(2)}</div>
+            <div class="text-[10px] text-slate-500">Prob: ${c.fraud_probability.toFixed(2)}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function filterQueue(type) {
+      document.querySelectorAll('#btn-filter-all, #btn-filter-fraud, #btn-filter-legit, #btn-filter-sar').forEach(b => {
+        b.className = "px-2.5 py-1 rounded font-medium text-slate-400 hover:text-slate-200";
+      });
+      if (type === 'all') {
+        document.getElementById('btn-filter-all').className = "px-2.5 py-1 rounded font-medium bg-slate-800 text-orange-400 border border-slate-700";
+        renderCaseQueue(allCases);
+      } else if (type === 'fraud') {
+        document.getElementById('btn-filter-fraud').className = "px-2.5 py-1 rounded font-medium bg-slate-800 text-orange-400 border border-slate-700";
+        renderCaseQueue(allCases.filter(c => c.verdict === 'fraud'));
+      } else if (type === 'legitimate') {
+        document.getElementById('btn-filter-legit').className = "px-2.5 py-1 rounded font-medium bg-slate-800 text-orange-400 border border-slate-700";
+        renderCaseQueue(allCases.filter(c => c.verdict === 'legitimate'));
+      } else if (type === 'sar') {
+        document.getElementById('btn-filter-sar').className = "px-2.5 py-1 rounded font-medium bg-slate-800 text-orange-400 border border-slate-700";
+        renderCaseQueue(allCases.filter(c => c.sar_filed));
+      }
+    }
+
+    async function selectCase(caseId) {
+      try {
+        const res = await fetch(`/api/case/${caseId}`);
+        currentCase = await res.json();
+        updateCaseView(currentCase);
+
+        // Load Topology
+        const topRes = await fetch(`/api/topology/${caseId}`);
+        topologyData = await topRes.json();
+        buildGraphNodes(topologyData);
+
+        renderCaseQueue(allCases);
+      } catch (e) {
+        console.error("Failed to load case", e);
+      }
+    }
+
+    function updateCaseView(data) {
+      const c = data.case;
+      document.getElementById('active-case-id').innerText = data.case_id;
+
+      // Status Badge
+      const statusBadge = document.getElementById('active-status-badge');
+      statusBadge.innerText = c.status.toUpperCase();
+      statusBadge.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+        c.status === 'closed_fraud' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
+        c.status === 'closed_legitimate' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
+        'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+      }`;
+
+      // Verdict Badge
+      const verdictBadge = document.getElementById('active-verdict-badge');
+      verdictBadge.innerText = c.verdict.toUpperCase();
+      verdictBadge.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+        c.verdict === 'fraud' ? 'bg-rose-600/30 text-rose-300' : 'bg-emerald-600/30 text-emerald-300'
+      }`;
+
+      document.getElementById('active-pattern-badge').innerText = c.pattern !== 'none' ? c.pattern.replace(/_/g, ' ') : 'Legitimate / Baseline Verified';
+      document.getElementById('active-exposure').innerText = `$${c.exposure_usd.toFixed(2)}`;
+      document.getElementById('active-fraud-prob').innerText = c.fraud_probability.toFixed(2);
+      document.getElementById('graph-vertex-id').innerText = c.graph_case_id || 'PERSISTED_TO_GRAPH';
+
+      // Card & Cust from evidence
+      let cardId = "C01234-K1", custId = "C01234", txnId = c.affected_txn_ids[0] || "TXN";
+      for (let e of c.evidence) {
+        for (let eid of e.entity_ids) {
+          if (eid.includes('-K')) { cardId = eid; custId = eid.split('-')[0]; break; }
+        }
+      }
+      document.getElementById('active-card-id').innerText = cardId;
+      document.getElementById('active-cust-id').innerText = custId;
+      document.getElementById('active-txn-id').innerText = txnId;
+
+      // Model Score
+      document.getElementById('active-model-score').innerText = (c.evidence[0] && c.evidence[0].claim.match(/score ([0-9\.]+)/)) ? RegExp.$1 : '0.65';
+
+      // Actions Render
+      renderActionList('initial-actions-list', data.next_best_actions.initial);
+      renderActionList('final-actions-list', data.next_best_actions.final);
+      document.getElementById('what-changed-text').innerText = data.next_best_actions.what_changed;
+
+      // SAR Render
+      const sar = data.sar;
+      const sarBadge = document.getElementById('sar-filing-badge');
+      if (sar.file) {
+        sarBadge.innerText = "REQUIRED (L2 APPROVAL)";
+        sarBadge.className = "text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded font-bold";
+        document.getElementById('sar-content-block').classList.remove('hidden');
+        document.getElementById('sar-not-required-block').classList.add('hidden');
+        document.getElementById('sar-reason').innerText = sar.reason;
+        document.getElementById('sar-narrative').innerText = sar.narrative;
+        document.getElementById('sar-subjects').innerText = sar.subjects.slice(0, 3).join(', ');
+      } else {
+        sarBadge.innerText = "NOT REQUIRED";
+        sarBadge.className = "text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded font-bold";
+        document.getElementById('sar-content-block').classList.add('hidden');
+        document.getElementById('sar-not-required-block').classList.remove('hidden');
+      }
+
+      // Memory render
+      const memContainer = document.getElementById('case-memory-list');
+      memContainer.innerHTML = '';
+      (c.similar_prior_cases || []).forEach(sc => {
+        const item = document.createElement('div');
+        item.className = "p-2 rounded bg-slate-900 border border-slate-800 text-xs flex items-center justify-between";
+        item.innerHTML = `<span class="font-mono text-purple-300">${sc}</span><span class="text-[10px] text-slate-500">Historical Precedent</span>`;
+        memContainer.appendChild(item);
+      });
+
+      // Stepper Render
+      renderStepper(data);
+    }
+
+    function renderActionList(containerId, actions) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      (actions || []).forEach(a => {
+        const div = document.createElement('div');
+        const routeColor = a.route === 'L2' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' :
+                           a.route === 'L1' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                           'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+        div.className = "p-2 rounded bg-slate-900/90 border border-slate-800 flex items-start justify-between gap-2 text-xs";
+        div.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-200">${a.action}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">${a.reason}</div>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold border shrink-0 ${routeColor}">${a.route}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderStepper(data) {
+      const c = data.case;
+      const container = document.getElementById('stepper-container');
+      container.innerHTML = '';
+
+      const steps = [
+        { num: 1, title: "Trigger Ingestion", icon: "fa-bell", desc: "Alert received & ingested" },
+        { num: 2, title: "Graph Traversal", icon: "fa-diagram-project", desc: "Card window & 2-hop device neighbors" },
+        { num: 3, title: "Evidence Synthesis", icon: "fa-microscope", desc: `${c.evidence.length} defensible claims assembled` },
+        { num: 4, title: "Uncertainty & Typology", icon: "fa-gauge-high", desc: `Prob: ${c.fraud_probability.toFixed(2)} | ${c.pattern}` },
+        { num: 5, title: "Initial Routing", icon: "fa-shield", desc: "Policy R1-R10 evaluated" },
+        { num: 6, title: "Controlled Action", icon: "fa-user-check", desc: data.evidence_requests.length > 0 ? "Customer validation simulated" : "Direct baseline closure" },
+        { num: 7, title: "SAR Decision", icon: "fa-file-lines", desc: data.sar.file ? "SAR formulated" : "Internal case only" },
+        { num: 8, title: "Graph Memory Write", icon: "fa-floppy-disk", desc: "Case written to TigerGraph" }
+      ];
+
+      steps.forEach(s => {
+        const stepEl = document.createElement('div');
+        stepEl.className = "min-w-[150px] p-2.5 rounded-lg bg-slate-900 border border-slate-800 shrink-0 text-xs";
+        stepEl.innerHTML = `
+          <div class="flex items-center gap-1.5 text-orange-400 font-bold mb-1">
+            <span class="w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[10px]">${s.num}</span>
+            <span class="text-[11px]">${s.title}</span>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-tight">${s.desc}</p>
+        `;
+        container.appendChild(stepEl);
+      });
+
+      document.getElementById('stepper-stop-reason').innerText = data.stop_reason;
+    }
+
+    async function simulateApproval(route) {
+      if (!currentCase) return;
+      try {
+        await fetch(`/api/approve/${currentCase.case_id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ route: route, action: "APPROVED_CONFIRMED" })
+        });
+        const toast = document.getElementById('approval-toast');
+        toast.innerText = `${route} Authorization Confirmed & Appended to Case Memory Audit Trail!`;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 3000);
+      } catch (e) {
+        console.error("Approval error", e);
+      }
+    }
+
+    function copySARNarrative() {
+      const text = document.getElementById('sar-narrative').innerText;
+      navigator.clipboard.writeText(text);
+      alert("SAR Narrative copied to clipboard for FinCEN regulatory filing!");
+    }
+
+    // -------------------------------------------------------------------------
+    // Canvas Graph Simulation (Force-directed layout)
+    // -------------------------------------------------------------------------
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+
+    function buildGraphNodes(data) {
+      const width = canvas.width;
+      const height = canvas.height;
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      nodes = (data.nodes || []).map((n, i) => {
+        const angle = (i / data.nodes.length) * Math.PI * 2;
+        const radius = n.type === 'case' ? 0 : n.type === 'card' ? 90 : 180;
+        return {
+          ...n,
+          x: centerX + Math.cos(angle) * radius + (Math.random() - 0.5) * 30,
+          y: centerY + Math.sin(angle) * radius + (Math.random() - 0.5) * 30,
+          vx: 0,
+          vy: 0,
+          radius: n.type === 'case' ? 24 : n.type === 'card' ? 18 : 14
+        };
+      });
+
+      const nodeMap = new Map(nodes.map(n => [n.id, n]));
+      links = (data.links || []).map(l => ({
+        source: nodeMap.get(l.source),
+        target: nodeMap.get(l.target),
+        rel: l.rel
+      })).filter(l => l.source && l.target);
+    }
+
+    function resetGraphView() {
+      if (topologyData) buildGraphNodes(topologyData);
+    }
+
+    function renderGraph() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Force calculations
+      const k = 0.05;
+      const rep = 800;
+
+      // Link spring
+      links.forEach(l => {
+        const dx = l.target.x - l.source.x;
+        const dy = l.target.y - l.source.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const force = (dist - 120) * k;
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+
+        if (l.source !== draggedNode) { l.source.x += fx * 0.2; l.source.y += fy * 0.2; }
+        if (l.target !== draggedNode) { l.target.x -= fx * 0.2; l.target.y -= fy * 0.2; }
+      });
+
+      // Node repulsion
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[j].x - nodes[i].x;
+          const dy = nodes[j].y - nodes[i].y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          if (dist < 200) {
+            const force = rep / (dist * dist);
+            const fx = (dx / dist) * force;
+            const fy = (dy / dist) * force;
+            if (nodes[i] !== draggedNode) { nodes[i].x -= fx; nodes[i].y -= fy; }
+            if (nodes[j] !== draggedNode) { nodes[j].x += fx; nodes[j].y += fy; }
+          }
+        }
+      }
+
+      // Draw Links
+      links.forEach(l => {
+        ctx.beginPath();
+        ctx.moveTo(l.source.x, l.source.y);
+        ctx.lineTo(l.target.x, l.target.y);
+        ctx.strokeStyle = '#2A3C58';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Edge label
+        const midX = (l.source.x + l.target.x) / 2;
+        const midY = (l.source.y + l.target.y) / 2;
+        ctx.fillStyle = '#64748B';
+        ctx.font = '9px monospace';
+        ctx.fillText(l.rel, midX, midY);
+      });
+
+      // Draw Nodes
+      nodes.forEach(n => {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+
+        if (n.type === 'case') ctx.fillStyle = '#F97316';
+        else if (n.type === 'card') ctx.fillStyle = '#3B82F6';
+        else if (n.type === 'customer') ctx.fillStyle = '#A855F7';
+        else if (n.type === 'transaction') ctx.fillStyle = '#EF4444';
+        else if (n.type === 'device') ctx.fillStyle = '#F59E0B';
+        else ctx.fillStyle = '#06B6D4';
+
+        ctx.fill();
+        ctx.strokeStyle = '#0B0F19';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = '#F1F5F9';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x, n.y + n.radius + 12);
+      });
+
+      requestAnimationFrame(renderGraph);
+    }
+
+    function setupCanvasInteractions() {
+      canvas.addEventListener('mousedown', e => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        for (let n of nodes) {
+          const dx = mx - n.x;
+          const dy = my - n.y;
+          if (Math.sqrt(dx * dx + dy * dy) <= n.radius) {
+            isDragging = true;
+            draggedNode = n;
+            break;
+          }
+        }
+      });
+
+      canvas.addEventListener('mousemove', e => {
+        if (isDragging && draggedNode) {
+          const rect = canvas.getBoundingClientRect();
+          draggedNode.x = e.clientX - rect.left;
+          draggedNode.y = e.clientY - rect.top;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+        draggedNode = null;
+      });
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

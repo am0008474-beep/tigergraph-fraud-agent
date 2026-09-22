@@ -1,0 +1,205 @@
+{
+  "case_id": "HHG-017",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.96,
+    "pattern": "undocumented",
+    "pattern_description": "Automated bot velocity attack utilizing hidden rotating IP proxies. Rapid repeat online authorizations of identical $100 amounts attempted within a 60-minute window.",
+    "affected_txn_ids": [
+      "3450436",
+      "3450503",
+      "3450629"
+    ],
+    "first_suspicious_txn_id": "3450436",
+    "connected_card_ids": [
+      "C00329-K1",
+      "C00854-K1",
+      "C01155-K1",
+      "C01569-K1",
+      "C01755-K1",
+      "C02716-K1",
+      "C02830-K1",
+      "C03318-K1",
+      "C03598-K1",
+      "C04117-K1",
+      "C04125-K1",
+      "C04596-K1",
+      "C04928-K1",
+      "C05108-K1",
+      "C05245-K1",
+      "C05530-K1",
+      "C05868-K1",
+      "C06167-K1",
+      "C06224-K1",
+      "C06482-K1",
+      "C06948-K1",
+      "C07356-K1",
+      "C07871-K1",
+      "C08008-K1",
+      "C09017-K1",
+      "C09195-K1",
+      "C09468-K1",
+      "C09800-K1",
+      "C10026-K1",
+      "C10127-K1",
+      "C10177-K1",
+      "C10751-K1",
+      "C11227-K1",
+      "C11543-K1",
+      "C12042-K1"
+    ],
+    "connected_device_profiles": [
+      "Windows | Windows 10 | chrome 65.0 | 1920x1080"
+    ],
+    "exposure_usd": 300.14,
+    "evidence": [
+      {
+        "claim": "Burst of 3 online authorizations totaling $300.14 on card C04570-K1 within 48-hour monitoring window",
+        "source": "graph",
+        "ref": "query:card_window(card_id=C04570-K1, hours=48)",
+        "entity_ids": [
+          "3450436",
+          "3450503",
+          "3450629"
+        ]
+      },
+      {
+        "claim": "Device profile (Windows | Windows 10 | chrome 65.0 | 1920x1080...) is shared across 35 other card(s) (C00329-K1, C00854-K1), indicating syndicated card-not-present ring activity",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": [
+          "C00329-K1",
+          "C00854-K1",
+          "C01155-K1",
+          "C01569-K1",
+          "C01755-K1",
+          "C02716-K1",
+          "C02830-K1",
+          "C03318-K1",
+          "C03598-K1",
+          "C04117-K1",
+          "C04125-K1",
+          "C04596-K1",
+          "C04928-K1",
+          "C05108-K1",
+          "C05245-K1",
+          "C05530-K1",
+          "C05868-K1",
+          "C06167-K1",
+          "C06224-K1",
+          "C06482-K1",
+          "C06948-K1",
+          "C07356-K1",
+          "C07871-K1",
+          "C08008-K1",
+          "C09017-K1",
+          "C09195-K1",
+          "C09468-K1",
+          "C09800-K1",
+          "C10026-K1",
+          "C10127-K1",
+          "C10177-K1",
+          "C10751-K1",
+          "C11227-K1",
+          "C11543-K1",
+          "C12042-K1"
+        ]
+      },
+      {
+        "claim": "Typology matches historical closed cases CC-5558, CC-5557 with confirmed card_not_present_fraud outcome and comparable transactional topology",
+        "source": "document",
+        "ref": "query:closed_cases_memory",
+        "entity_ids": [
+          "CC-5558",
+          "CC-5557"
+        ]
+      },
+      {
+        "claim": "Cardholder verification inquiry: Cardholder confirms they did not execute or authorize this transaction and retained physical possession of the card.",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "C04570-K1"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-5558",
+      "CC-5557"
+    ],
+    "summary": "Investigation into alert on transaction 3450629 confirmed undocumented on card C04570-K1. Graph analysis identified $300.14 in unauthorized exposure across 3 transaction(s). Cross-account traversal revealed a shared device ring linked to 35 other card(s). Cardholder denied the activity. Card blocked for reissue, case recorded to graph memory, and regulatory filings executed per policy.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-20260923-HHG-017"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 4,
+      "assumed_response": "Cardholder confirms they did not execute or authorize this transaction and retained physical possession of the card."
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: Coordinated fraud ring detected sharing device profile across multiple cardholders"
+      },
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: Verify cardholder authorization while identifying compromised ring scope"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: Elevate monitoring sensitivity on all cards sharing the identified device infrastructure"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: Customer denied transaction / unauthorized activity confirmed. Exposure $300.14"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: Formally open internal fraud case and record investigation graph vertex"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R2/Policy 3a: activity links to shared device/ring infrastructure across 35 connected card(s); pattern represents coordinated undocumented syndicate activity (R9)"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: Place connected card(s) C00329-K1, C00854-K1, C01155-K1 under heightened 72h monitoring"
+      }
+    ],
+    "what_changed": "Customer denial confirmed unauthorized activity, raising fraud probability to 0.96. Initial verification action escalated to immediate card block and case creation under Policy R2."
+  },
+  "sar": {
+    "file": true,
+    "reason": "R2/Policy 3a: activity links to shared device/ring infrastructure across 35 connected card(s); pattern represents coordinated undocumented syndicate activity (R9)",
+    "narrative": "On 2016-11-11 23:46:24, payment card C04570-K1 registered to customer C04570 was utilized in an unauthorized transaction totaling $100.09 via the online channel. Investigation revealed activity matching typology 'undocumented', characterized by anomalous device fingerprinting (Windows | Windows 10 | chrome 65.0 | 1920x108). Analysis identified common infrastructure linking this compromise to 35 additional payment card(s). Upon direct cardholder inquiry, the primary account owner formally denied authorizing or executing the transactions while confirming continued physical possession of the card. Total cumulative unauthorized exposure identified across the compromise episode is $300.14 USD. The financial institution has taken immediate mitigating action by declining pending transactions and blocking card C04570-K1 with reissue initiated. Heightened 72-hour fraud monitoring has been deployed across all connected accounts. This report is submitted pursuant to federal Bank Secrecy Act and FinCEN suspicious activity reporting mandates regarding suspected payment card compromise and illicit fund redirection.",
+    "subjects": [
+      "C04570",
+      "C04570-K1",
+      "C00329-K1",
+      "C00854-K1",
+      "Windows | Windows 10 | chrome 65.0 | 192"
+    ],
+    "total_amount_usd": 300.14,
+    "activity_dates": [
+      "2016-11-11",
+      "2016-11-11"
+    ]
+  },
+  "stop_reason": "Customer denial and graph topology established conclusive fraud determination (probability >= 0.85); defensible mitigation actions deployed.",
+  "tool_calls": 6,
+  "tokens": 12500,
+  "latency_s": 0.04
+}

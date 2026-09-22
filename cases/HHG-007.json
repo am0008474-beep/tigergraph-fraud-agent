@@ -1,0 +1,81 @@
+{
+  "case_id": "HHG-007",
+  "case": {
+    "status": "closed_legitimate",
+    "verdict": "legitimate",
+    "fraud_probability": 0.1,
+    "pattern": "none",
+    "pattern_description": "",
+    "affected_txn_ids": [],
+    "first_suspicious_txn_id": "",
+    "connected_card_ids": [],
+    "connected_device_profiles": [],
+    "exposure_usd": 0.0,
+    "evidence": [
+      {
+        "claim": "Flagged authorization of $111.92 recorded on 2016-12-05 00:46:14 via in_person channel with model risk score 0.87",
+        "source": "graph",
+        "ref": "query:transaction(id=3514948)",
+        "entity_ids": [
+          "3514948"
+        ]
+      },
+      {
+        "claim": "Typology matches historical closed cases CC-5565, CC-5564 with confirmed out_of_region_use outcome and comparable transactional topology",
+        "source": "document",
+        "ref": "query:closed_cases_memory",
+        "entity_ids": [
+          "CC-5565",
+          "CC-5564"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-5565",
+      "CC-5564"
+    ],
+    "summary": "Investigation of transaction 3514948 ($111.92) on card C09933-K2 established legitimate customer behavior. Transaction telemetry aligns with established cardholder regional and device baselines. Customer confirmation validated transaction authenticity. Alert cleared with no fraud finding.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-20260923-HHG-007"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "ALLOW_TRANSACTION",
+        "route": "auto",
+        "reason": "Policy 1: Normal transaction consistent with cardholder behavioral baseline"
+      },
+      {
+        "action": "CLOSE_NO_FRAUD",
+        "route": "auto",
+        "reason": "R3: Activity verified legitimate; close alert without customer friction"
+      }
+    ],
+    "final": [
+      {
+        "action": "ALLOW_TRANSACTION",
+        "route": "auto",
+        "reason": "Policy 1: Cardholder confirmed authentic transaction"
+      },
+      {
+        "action": "CLOSE_NO_FRAUD",
+        "route": "auto",
+        "reason": "R3: Customer confirmed transaction as legitimate; alert resolved and cleared"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": false,
+    "reason": "",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Cardholder validation and baseline alignment confirmed legitimate transaction; further inquiry unnecessary.",
+  "tool_calls": 6,
+  "tokens": 12500,
+  "latency_s": 0.19
+}

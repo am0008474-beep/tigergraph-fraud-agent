@@ -1,0 +1,151 @@
+{
+  "case_id": "HHG-010",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.96,
+    "pattern": "card_not_present_new_device",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3506725"
+    ],
+    "first_suspicious_txn_id": "3506725",
+    "connected_card_ids": [
+      "C02079-K1",
+      "C02285-K1",
+      "C03714-K1",
+      "C03738-K1",
+      "C04190-K1",
+      "C05814-K1",
+      "C06070-K1",
+      "C07185-K1",
+      "C07925-K1",
+      "C10308-K1"
+    ],
+    "connected_device_profiles": [
+      "Windows | Windows 10 | edge 16.0 | 1366x768"
+    ],
+    "exposure_usd": 1000.03,
+    "evidence": [
+      {
+        "claim": "Flagged authorization of $1000.03 recorded on 2016-12-02 15:18:27 via online channel with model risk score 0.90",
+        "source": "graph",
+        "ref": "query:transaction(id=3506725)",
+        "entity_ids": [
+          "3506725"
+        ]
+      },
+      {
+        "claim": "Device profile (Windows | Windows 10 | edge 16.0 | 1366x768...) is shared across 10 other card(s) (C02079-K1, C02285-K1), indicating syndicated card-not-present ring activity",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": [
+          "C02079-K1",
+          "C02285-K1",
+          "C03714-K1",
+          "C03738-K1",
+          "C04190-K1",
+          "C05814-K1",
+          "C06070-K1",
+          "C07185-K1",
+          "C07925-K1",
+          "C10308-K1"
+        ]
+      },
+      {
+        "claim": "Typology matches historical closed cases CC-5564, CC-5556 with confirmed card_not_present_new_device outcome and comparable transactional topology",
+        "source": "document",
+        "ref": "query:closed_cases_memory",
+        "entity_ids": [
+          "CC-5564",
+          "CC-5556"
+        ]
+      },
+      {
+        "claim": "Cardholder verification inquiry: Cardholder confirms they did not execute or authorize this transaction and retained physical possession of the card.",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "C10434-K1"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-5564",
+      "CC-5556"
+    ],
+    "summary": "Investigation into alert on transaction 3506725 confirmed card not present new device on card C10434-K1. Graph analysis identified $1000.03 in unauthorized exposure across 1 transaction(s). Cross-account traversal revealed a shared device ring linked to 10 other card(s). Cardholder denied the activity. Card blocked for reissue, case recorded to graph memory, and regulatory filings executed per policy.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-20260923-HHG-010"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 4,
+      "assumed_response": "Cardholder confirms they did not execute or authorize this transaction and retained physical possession of the card."
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R6: Coordinated fraud ring detected sharing device profile across multiple cardholders"
+      },
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: Verify cardholder authorization while identifying compromised ring scope"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: Elevate monitoring sensitivity on all cards sharing the identified device infrastructure"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: Customer denied transaction / unauthorized activity confirmed. Exposure $1000.03"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: Formally open internal fraud case and record investigation graph vertex"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R2/Policy 3a: exposure of $1000.03 exceeds regulatory filing threshold ($1,000); activity links to shared device/ring infrastructure across 10 connected card(s)"
+      },
+      {
+        "action": "MONITOR_CONNECTED_CARDS",
+        "route": "auto",
+        "reason": "R6: Place connected card(s) C02079-K1, C02285-K1, C03714-K1 under heightened 72h monitoring"
+      }
+    ],
+    "what_changed": "Customer denial confirmed unauthorized activity, raising fraud probability to 0.96. Initial verification action escalated to immediate card block and case creation under Policy R2."
+  },
+  "sar": {
+    "file": true,
+    "reason": "R2/Policy 3a: exposure of $1000.03 exceeds regulatory filing threshold ($1,000); activity links to shared device/ring infrastructure across 10 connected card(s)",
+    "narrative": "On 2016-12-02 15:18:27, payment card C10434-K1 registered to customer C10434 was utilized in an unauthorized transaction totaling $1000.03 via the online channel. Investigation revealed activity matching typology 'card_not_present_new_device', characterized by anomalous device fingerprinting (Windows | Windows 10 | edge 16.0 | 1366x768). Analysis identified common infrastructure linking this compromise to 10 additional payment card(s). Upon direct cardholder inquiry, the primary account owner formally denied authorizing or executing the transactions while confirming continued physical possession of the card. Total cumulative unauthorized exposure identified across the compromise episode is $1000.03 USD. The financial institution has taken immediate mitigating action by declining pending transactions and blocking card C10434-K1 with reissue initiated. Heightened 72-hour fraud monitoring has been deployed across all connected accounts. This report is submitted pursuant to federal Bank Secrecy Act and FinCEN suspicious activity reporting mandates regarding suspected payment card compromise and illicit fund redirection.",
+    "subjects": [
+      "C10434",
+      "C10434-K1",
+      "C02079-K1",
+      "C02285-K1",
+      "Windows | Windows 10 | edge 16.0 | 1366x"
+    ],
+    "total_amount_usd": 1000.03,
+    "activity_dates": [
+      "2016-12-02",
+      "2016-12-02"
+    ]
+  },
+  "stop_reason": "Customer denial and graph topology established conclusive fraud determination (probability >= 0.85); defensible mitigation actions deployed.",
+  "tool_calls": 6,
+  "tokens": 12500,
+  "latency_s": 0.05
+}
