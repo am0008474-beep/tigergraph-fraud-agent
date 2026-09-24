@@ -36,7 +36,7 @@
     ],
     "summary": "Investigation of transaction 3514030 ($77.07) on card C12382-K1 established legitimate customer behavior. Transaction telemetry aligns with established cardholder regional and device baselines. Customer confirmation validated transaction authenticity. Alert cleared with no fraud finding.",
     "written_to_graph": true,
-    "graph_case_id": "CASE-20260923-HHG-001"
+    "graph_case_id": "CASE-20260924-HHG-001"
   },
   "evidence_requests": [],
   "next_best_actions": {
@@ -77,5 +77,5 @@
   "stop_reason": "Cardholder validation and baseline alignment confirmed legitimate transaction; further inquiry unnecessary.",
   "tool_calls": 6,
   "tokens": 12500,
-  "latency_s": 0.08
+  "latency_s": 0.09
 }

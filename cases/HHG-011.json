@@ -82,7 +82,7 @@
     ],
     "summary": "Investigation into alert on transaction 3583368 confirmed card not present new device on card C11923-K2. Graph analysis identified $1836.43 in unauthorized exposure across 18 transaction(s). Cross-account traversal revealed a shared device ring linked to 3 other card(s). Cardholder denied the activity. Card blocked for reissue, case recorded to graph memory, and regulatory filings executed per policy.",
     "written_to_graph": true,
-    "graph_case_id": "CASE-20260923-HHG-011"
+    "graph_case_id": "CASE-20260924-HHG-011"
   },
   "evidence_requests": [
     {
@@ -136,7 +136,7 @@
   "sar": {
     "file": true,
     "reason": "R2/Policy 3a: exposure of $1836.43 exceeds regulatory filing threshold ($1,000); activity links to shared device/ring infrastructure across 3 connected card(s)",
-    "narrative": "On 2016-12-29 03:27:44, payment card C11923-K2 registered to customer C11923 was utilized in an unauthorized transaction totaling $131.30 via the online channel. Investigation revealed activity matching typology 'card_not_present_new_device', characterized by anomalous device fingerprinting (SM-G610F Build/NRD90M | chrome 66.0 for andro). Analysis identified common infrastructure linking this compromise to 3 additional payment card(s). Upon direct cardholder inquiry, the primary account owner formally denied authorizing or executing the transactions while confirming continued physical possession of the card. Total cumulative unauthorized exposure identified across the compromise episode is $1836.43 USD. The financial institution has taken immediate mitigating action by declining pending transactions and blocking card C11923-K2 with reissue initiated. Heightened 72-hour fraud monitoring has been deployed across all connected accounts. This report is submitted pursuant to federal Bank Secrecy Act and FinCEN suspicious activity reporting mandates regarding suspected payment card compromise and illicit fund redirection.",
+    "narrative": "Between 2016-12-28 and 2016-12-29, payment card C11923-K2 registered to customer C11923 was utilized in unauthorized transactions totaling $1836.43 USD via the online channel. Investigation revealed activity matching typology 'card_not_present_new_device', characterized by anomalous device fingerprinting (SM-G610F Build/NRD90M | chrome 66.0 for andro). Analysis identified common infrastructure linking this compromise to 3 additional payment card(s). Cardholder inquiry verified that the primary account owner formally denied authorizing or executing the transactions while confirming continued physical possession of the card. Telemetry indicates that transaction velocity and parameters significantly deviate from established cardholder baseline profiles. Total cumulative unauthorized exposure identified across the compromise episode is $1836.43 USD. The financial institution has taken immediate mitigating action by declining pending transactions and blocking card C11923-K2 with reissue initiated. Heightened 72-hour fraud monitoring has been deployed across all connected accounts. This report is submitted pursuant to federal Bank Secrecy Act and FinCEN suspicious activity reporting mandates regarding suspected payment card compromise and illicit fund redirection.",
     "subjects": [
       "C11923",
       "C11923-K2",
@@ -146,12 +146,12 @@
     ],
     "total_amount_usd": 1836.43,
     "activity_dates": [
-      "2016-12-29",
+      "2016-12-28",
       "2016-12-29"
     ]
   },
   "stop_reason": "Customer denial and graph topology established conclusive fraud determination (probability >= 0.85); defensible mitigation actions deployed.",
   "tool_calls": 6,
   "tokens": 12500,
-  "latency_s": 0.43
+  "latency_s": 0.66
 }

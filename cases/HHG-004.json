@@ -71,7 +71,7 @@
     ],
     "summary": "Investigation into alert on transaction 3583227 confirmed card not present new device on card C08106-K1. Graph analysis identified $305.06 in unauthorized exposure across 3 transaction(s). Cross-account traversal revealed a shared device ring linked to 5 other card(s). Cardholder denied the activity. Card blocked for reissue, case recorded to graph memory, and regulatory filings executed per policy.",
     "written_to_graph": true,
-    "graph_case_id": "CASE-20260923-HHG-004"
+    "graph_case_id": "CASE-20260924-HHG-004"
   },
   "evidence_requests": [
     {
@@ -125,7 +125,7 @@
   "sar": {
     "file": true,
     "reason": "R2/Policy 3a: activity links to shared device/ring infrastructure across 5 connected card(s)",
-    "narrative": "On 2016-12-29 01:53:54, payment card C08106-K1 registered to customer C08106 was utilized in an unauthorized transaction totaling $128.33 via the online channel. Investigation revealed activity matching typology 'card_not_present_new_device', characterized by anomalous device fingerprinting (firefox 47.0). Analysis identified common infrastructure linking this compromise to 5 additional payment card(s). Upon direct cardholder inquiry, the primary account owner formally denied authorizing or executing the transactions while confirming continued physical possession of the card. Total cumulative unauthorized exposure identified across the compromise episode is $305.06 USD. The financial institution has taken immediate mitigating action by declining pending transactions and blocking card C08106-K1 with reissue initiated. Heightened 72-hour fraud monitoring has been deployed across all connected accounts. This report is submitted pursuant to federal Bank Secrecy Act and FinCEN suspicious activity reporting mandates regarding suspected payment card compromise and illicit fund redirection.",
+    "narrative": "Between 2016-12-28 and 2016-12-30, payment card C08106-K1 registered to customer C08106 was utilized in unauthorized transactions totaling $305.06 USD via the online channel. Investigation revealed activity matching typology 'card_not_present_new_device', characterized by anomalous device fingerprinting (firefox 47.0). Analysis identified common infrastructure linking this compromise to 5 additional payment card(s). Cardholder inquiry verified that the primary account owner formally denied authorizing or executing the transactions while confirming continued physical possession of the card. Telemetry indicates that transaction velocity and parameters significantly deviate from established cardholder baseline profiles. Total cumulative unauthorized exposure identified across the compromise episode is $305.06 USD. The financial institution has taken immediate mitigating action by declining pending transactions and blocking card C08106-K1 with reissue initiated. Heightened 72-hour fraud monitoring has been deployed across all connected accounts. This report is submitted pursuant to federal Bank Secrecy Act and FinCEN suspicious activity reporting mandates regarding suspected payment card compromise and illicit fund redirection.",
     "subjects": [
       "C08106",
       "C08106-K1",
@@ -135,12 +135,12 @@
     ],
     "total_amount_usd": 305.06,
     "activity_dates": [
-      "2016-12-29",
-      "2016-12-29"
+      "2016-12-28",
+      "2016-12-30"
     ]
   },
   "stop_reason": "Customer denial and graph topology established conclusive fraud determination (probability >= 0.85); defensible mitigation actions deployed.",
   "tool_calls": 6,
   "tokens": 12500,
-  "latency_s": 0.04
+  "latency_s": 0.05
 }

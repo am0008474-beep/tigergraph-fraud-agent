@@ -1,5 +1,5 @@
 {
-  "case_id": "HHG-003",
+  "case_id": "AUTO-001",
   "case": {
     "status": "closed_fraud",
     "verdict": "fraud",
@@ -7,19 +7,19 @@
     "pattern": "out_of_region_use",
     "pattern_description": "",
     "affected_txn_ids": [
-      "3530164"
+      "3471965"
     ],
-    "first_suspicious_txn_id": "3530164",
+    "first_suspicious_txn_id": "3471965",
     "connected_card_ids": [],
     "connected_device_profiles": [],
-    "exposure_usd": 49.0,
+    "exposure_usd": 773.96,
     "evidence": [
       {
-        "claim": "Flagged authorization of $49.00 recorded on 2016-12-10 13:01:21 via in_person channel with model risk score 0.40",
+        "claim": "Flagged authorization of $773.96 recorded on 2016-11-19 23:42:32 via in_person channel with model risk score 0.99",
         "source": "graph",
-        "ref": "query:transaction(id=3530164)",
+        "ref": "query:transaction(id=3471965)",
         "entity_ids": [
-          "3530164"
+          "3471965"
         ]
       },
       {
@@ -36,7 +36,7 @@
         "source": "customer",
         "ref": "evidence_request:1",
         "entity_ids": [
-          "C08623-K2"
+          "C06962-K1"
         ]
       }
     ],
@@ -44,9 +44,9 @@
       "CC-5565",
       "CC-5564"
     ],
-    "summary": "Investigation into alert on transaction 3530164 confirmed out of region use on card C08623-K2. Graph analysis identified $49.00 in unauthorized exposure across 1 transaction(s). Cardholder denied the activity. Card blocked for reissue, case recorded to graph memory, and regulatory filings executed per policy.",
+    "summary": "Investigation into alert on transaction 3471965 confirmed out of region use on card C06962-K1. Graph analysis identified $773.96 in unauthorized exposure across 1 transaction(s). Cardholder denied the activity. Card blocked for reissue, case recorded to graph memory, and regulatory filings executed per policy.",
     "written_to_graph": true,
-    "graph_case_id": "CASE-20260924-HHG-003"
+    "graph_case_id": "CASE-20260924-AUTO-001"
   },
   "evidence_requests": [
     {
@@ -58,21 +58,26 @@
   "next_best_actions": {
     "initial": [
       {
-        "action": "CREATE_CASE",
-        "route": "auto",
-        "reason": "Policy 3a: Open internal fraud investigation upon customer claim of unauthorized charge"
+        "action": "DECLINE_TRANSACTION",
+        "route": "L1",
+        "reason": "R1: Multi-signal fraud pattern identified with probability >= 0.70; decline pending authorization"
       },
       {
         "action": "VERIFY_WITH_CUSTOMER",
         "route": "auto",
-        "reason": "R1: Gather formal confirmation of card possession and transaction denial before executing block"
+        "reason": "R1: Confirm unauthorized status with cardholder before permanent card block"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "Policy 3a: Strong fraud indicators observed; create internal investigation case"
       }
     ],
     "final": [
       {
         "action": "BLOCK_CARD",
         "route": "L1",
-        "reason": "R2: Customer denied transaction / unauthorized activity confirmed. Exposure $49.00"
+        "reason": "R2: Customer denied transaction / unauthorized activity confirmed. Exposure $773.96"
       },
       {
         "action": "CREATE_CASE",
@@ -93,5 +98,5 @@
   "stop_reason": "Customer denial and graph topology established conclusive fraud determination (probability >= 0.85); defensible mitigation actions deployed.",
   "tool_calls": 6,
   "tokens": 12500,
-  "latency_s": 0.21
+  "latency_s": 0.09
 }

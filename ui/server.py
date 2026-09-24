@@ -24,19 +24,21 @@ app.add_middleware(
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CASES_DIR = os.path.join(BASE_DIR, "cases")
+AUTO_DIR = os.path.join(BASE_DIR, "autonomous_monitoring")
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 
 @app.get("/api/cases")
-def list_cases():
-    """Returns summarized list of all 20 benchmark cases."""
+def list_cases(source: str = "benchmark"):
+    """Returns summarized list of cases (benchmark or autonomous)."""
+    target_dir = AUTO_DIR if source == "autonomous" else CASES_DIR
     cases = []
-    if not os.path.exists(CASES_DIR):
+    if not os.path.exists(target_dir):
         return {"cases": []}
 
-    for fname in sorted(os.listdir(CASES_DIR)):
+    for fname in sorted(os.listdir(target_dir)):
         if fname.endswith(".json"):
-            fpath = os.path.join(CASES_DIR, fname)
+            fpath = os.path.join(target_dir, fname)
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 c = data.get("case", {})
@@ -61,6 +63,8 @@ def get_case(case_id: str):
     """Returns full details of a specific case."""
     fpath = os.path.join(CASES_DIR, f"{case_id}.json")
     if not os.path.exists(fpath):
+        fpath = os.path.join(AUTO_DIR, f"{case_id}.json")
+    if not os.path.exists(fpath):
         raise HTTPException(status_code=404, detail="Case not found")
     with open(fpath, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -69,7 +73,7 @@ def get_case(case_id: str):
 @app.get("/api/stats")
 def get_stats():
     """Calculates dashboard summary metrics."""
-    cases_resp = list_cases()["cases"]
+    cases_resp = list_cases("benchmark")["cases"]
     total = len(cases_resp)
     fraud = sum(1 for c in cases_resp if c["verdict"] == "fraud")
     legit = sum(1 for c in cases_resp if c["verdict"] == "legitimate")
@@ -92,6 +96,8 @@ def get_stats():
 def get_case_topology(case_id: str):
     """Generates graph topology nodes and links for canvas rendering."""
     fpath = os.path.join(CASES_DIR, f"{case_id}.json")
+    if not os.path.exists(fpath):
+        fpath = os.path.join(AUTO_DIR, f"{case_id}.json")
     if not os.path.exists(fpath):
         raise HTTPException(status_code=404, detail="Case not found")
 

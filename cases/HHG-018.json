@@ -46,7 +46,7 @@
     ],
     "summary": "Investigation into alert on transaction 3491361 confirmed out of region use on card C02354-K2. Graph analysis identified $39.08 in unauthorized exposure across 1 transaction(s). Cardholder denied the activity. Card blocked for reissue, case recorded to graph memory, and regulatory filings executed per policy.",
     "written_to_graph": true,
-    "graph_case_id": "CASE-20260923-HHG-018"
+    "graph_case_id": "CASE-20260924-HHG-018"
   },
   "evidence_requests": [
     {
@@ -93,5 +93,5 @@
   "stop_reason": "Customer denial and graph topology established conclusive fraud determination (probability >= 0.85); defensible mitigation actions deployed.",
   "tool_calls": 6,
   "tokens": 12500,
-  "latency_s": 0.33
+  "latency_s": 0.35
 }

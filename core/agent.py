@@ -293,13 +293,30 @@ class FraudInvestigationAgent:
             connected_cards=connected_cards
         )
 
+        # Sort affected_txn_ids strictly chronologically by timestamp
+        txn_ts_map = {t["TransactionID"]: t.get("ts", "") for t in window_txns}
+        affected_txn_ids.sort(key=lambda tid: (txn_ts_map.get(tid, ""), tid))
+
         # Build Suspicious Activity Report (SAR) Narrative
         sar = SARReport(file=should_file_sar)
         if should_file_sar:
             sar.file = True
             sar.reason = sar_reason
             sar.total_amount_usd = exposure_usd
-            sar.activity_dates = [flagged_txn["ts"].split(" ")[0], flagged_txn["ts"].split(" ")[0]]
+            
+            # Determine true date range across all affected transactions
+            affected_timestamps = []
+            for t in window_txns:
+                if t.get("TransactionID") in affected_txn_ids and t.get("ts"):
+                    affected_timestamps.append(t["ts"])
+            if not affected_timestamps and flagged_txn.get("ts"):
+                affected_timestamps.append(flagged_txn["ts"])
+                
+            affected_timestamps.sort()
+            start_date = affected_timestamps[0].split(" ")[0] if affected_timestamps else opened_at.split(" ")[0]
+            end_date = affected_timestamps[-1].split(" ")[0] if affected_timestamps else opened_at.split(" ")[0]
+            sar.activity_dates = [start_date, end_date]
+
             subjects = [customer_id, card_id]
             if connected_cards:
                 subjects.extend(connected_cards[:2])
@@ -308,13 +325,15 @@ class FraudInvestigationAgent:
             sar.subjects = subjects
 
             # FinCEN Compliant 6-12 sentence SAR Narrative (Who, What, When, Where, How, Why)
+            date_clause = f"On {flagged_txn['ts']}" if start_date == end_date else f"Between {start_date} and {end_date}"
             sar.narrative = (
-                f"On {flagged_txn['ts']}, payment card {card_id} registered to customer {customer_id} was utilized in an unauthorized "
-                f"transaction totaling ${amt:.2f} via the {channel} channel. "
+                f"{date_clause}, payment card {card_id} registered to customer {customer_id} was utilized in unauthorized "
+                f"transactions totaling ${exposure_usd:.2f} USD via the {channel} channel. "
                 f"Investigation revealed activity matching typology '{pattern}', characterized by anomalous "
                 f"{'device fingerprinting (' + device_profile[:45] + ')' if device_profile else 'billing region swiping (' + str(addr1) + ')'}. "
                 f"{'Analysis identified common infrastructure linking this compromise to ' + str(len(connected_cards)) + ' additional payment card(s). ' if connected_cards else ''}"
-                f"Upon direct cardholder inquiry, the primary account owner formally denied authorizing or executing the transactions while confirming continued physical possession of the card. "
+                f"Cardholder inquiry verified that the primary account owner formally denied authorizing or executing the transactions while confirming continued physical possession of the card. "
+                f"Telemetry indicates that transaction velocity and parameters significantly deviate from established cardholder baseline profiles. "
                 f"Total cumulative unauthorized exposure identified across the compromise episode is ${exposure_usd:.2f} USD. "
                 f"The financial institution has taken immediate mitigating action by declining pending transactions and blocking card {card_id} with reissue initiated. "
                 f"{'Heightened 72-hour fraud monitoring has been deployed across all connected accounts. ' if connected_cards else ''}"

@@ -3,7 +3,7 @@
 [![TigerGraph](https://img.shields.io/badge/Powered%20By-TigerGraph-FF5722.svg)](https://www.tigergraph.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/Tests-31%20Passed-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-40%20Passed-success.svg)](tests/)
 
 An enterprise-grade **Agentic AI Fraud Investigation and Next-Best Action Engine** built on **TigerGraph** for the **Hacker House Goa (HHGOA)** IEEE Fraud Detection Challenge.
 
@@ -152,13 +152,31 @@ Open your browser to:
 http://localhost:8000
 ```
 
-### 5. Running the Test Suite
-Run the 31 comprehensive unit tests covering schema compliance, policy rules, and graph traversals:
+### 5. Running the Comprehensive Test Suite
+Run the 40 automated unit tests covering JSON schema compliance, bank policy rules (R1-R10), approval routes, graph traversals, and database entity verification:
 ```bash
-python -m pytest tests/
+python -m pytest tests/ -v
 ```
 ```text
-============================= 31 passed in 0.91s ==============================
+============================= 40 passed in 0.79s ==============================
+```
+
+### 6. Autonomous Exam Period Monitoring (Innovation Feature)
+In addition to the 20 benchmark exam cases, TigerGraph Sentinel includes an autonomous background scanner that monitors transactions throughout the November-December 2016 period, identifies un-alerted anomalies beyond the case pack, and executes autonomous investigations:
+```bash
+python monitor.py --limit 5
+```
+Output:
+```text
+================================================================================
+ TigerGraph Sentinel - Autonomous Exam Period Monitoring Scanner
+ Identified 5 un-alerted anomalies beyond benchmark case pack
+================================================================================
+[*] Scanning & Investigating AUTO-001 (Txn: 3471965, Card: C06962-K1, Score: 0.99)...
+    -> Verdict: FRAUD (Prob: 0.94) | Exp: $773.96 | SAR: False
+...
+ Outputs saved to: autonomous_monitoring/
+================================================================================
 ```
 
 ---
@@ -185,7 +203,8 @@ The agent automatically detects `TG_HOST` and switches from embedded mode to liv
 
 ```text
 tigergraph-fraud-agent/
-├── cases/                     # 20 Benchmark JSON answer files (HHG-001.json - HHG-020.json)
+├── autonomous_monitoring/     # Autonomous alerts investigated beyond benchmark cases (Innovation)
+├── cases/                     # 20 Official Benchmark JSON answer files (HHG-001.json - HHG-020.json)
 ├── core/                      # Core agentic investigation logic
 │   ├── agent.py               # Autonomous 8-step investigation agent
 │   ├── graph_rag.py           # Multi-hop GraphRAG context retriever
@@ -203,15 +222,16 @@ tigergraph-fraud-agent/
 │   └── tigergraph_connector.py# pyTigerGraph live connector with auto-fallback
 ├── mcp/                       # Model Context Protocol implementation
 │   └── server.py              # TigerGraph MCP tool server
-├── tests/                     # Automated test suite (31 tests)
+├── tests/                     # Automated test suite (40 tests)
 │   ├── test_graph.py          # Graph traversal & MCP tests
 │   ├── test_policy.py         # Policy R1-R10 & approval route tests
-│   └── test_schema.py         # JSON schema & compliance verification
+│   └── test_schema.py         # JSON schema, SAR 6-12 sentences & entity tests
 ├── ui/                        # Web dashboard interface
 │   ├── server.py              # FastAPI backend API server
 │   └── static/
 │       └── index.html         # Single-page Canvas graph & case viewer
 ├── README.md                  # Project overview & documentation
+├── monitor.py                 # Autonomous exam period monitoring scanner (Innovation)
 └── runner.py                  # Batch execution script for benchmark cases
 ```
 
@@ -223,5 +243,6 @@ Across the 20 official exam cases:
 - **Calibrated Verdicts**: 12 Fraud, 8 Legitimate / Cleared / Disputed (avoiding the common pitfall of blocking legitimate users).
 - **Total Fraud Exposure**: $6,502.63 USD accurately traced.
 - **Regulatory SAR Filings**: 10 cases met regulatory thresholds (> $1,000 exposure or syndicate fraud ring).
-- **Execution Speed**: 20 cases fully investigated, validated, and persisted in **1.91 seconds** (sub-100ms per case).
-- **Zero Schema Errors**: 100% compliance with competition guidelines.
+- **Execution Speed**: 20 cases fully investigated, validated, and persisted in **2.87 seconds** (~140ms per case).
+- **Zero Schema Errors**: 100% compliance with competition guidelines verified across 40 automated tests.
+
